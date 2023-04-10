@@ -5,22 +5,8 @@
       "source": [
         "%load_ext lab_black"
       ],
-      "outputs": [
-        {
-          "output_type": "stream",
-          "name": "stdout",
-          "text": "The lab_black extension is already loaded. To reload it, use:\n  %reload_ext lab_black\n"
-        },
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 30;\n                var nbb_unformatted_code = \"%load_ext lab_black\";\n                var nbb_formatted_code = \"%load_ext lab_black\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 30,
+      "outputs": [],
+      "execution_count": 1,
       "metadata": {}
     },
     {
@@ -44,11 +30,12 @@
         "from pyprojroot import here\n",
         "import numpy as np\n",
         "from skimpy import clean_columns\n",
+        "from data_cleaning.fun_hot_encode_limit import fun_hot_encode_limit\n",
+        "\n",
         "path_data = here(\"./data\")\n",
         "os.chdir(path_data)\n",
         "data_iu = pd.read_csv(\"iu_data.csv\")\n",
-        "data_iu=  clean_columns(data_iu)\n",
-        "\n"
+        "data_iu = clean_columns(data_iu)"
       ],
       "outputs": [
         {
@@ -58,16 +45,135 @@
             "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\"><span style=\"color: #008080; text-decoration-color: #008080; font-weight: bold\">17</span> column names have been cleaned\n</pre>\n"
           },
           "metadata": {}
+        }
+      ],
+      "execution_count": 2,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
         },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681157053359
+        }
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Step: Drop year"
+      ],
+      "metadata": {
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "data_iu[\"season\"] = data_iu[\"season\"].apply(lambda x: x.split(\"-\")[0])\n",
+        "\n",
+        "data_iu[\"season\"] = pd.to_datetime(data_iu[\"season\"], format=\"%Y\")\n",
+        "\n",
+        "data_iu_update = data_iu.query(\"season >= '1949-01-01'\").drop(columns=[\"coach_es\"])"
+      ],
+      "outputs": [],
+      "execution_count": 3,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681157054851
+        }
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Step: Create the outcome variable"
+      ],
+      "metadata": {
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "data_ncaa_tournament = pd.get_dummies(data_iu_update[\"ncaa_tournament\"], dummy_na=True)\n",
+        "data_ncaa_tournament = clean_columns(data_ncaa_tournament)\n",
+        "data_ncaa_tournament = data_ncaa_tournament.rename(columns={\"nan\": \"tournament_make\"})\n",
+        "data_ncaa_tournament = np.where(data_ncaa_tournament[\"tournament_make\"] == 0, 1, 0)"
+      ],
+      "outputs": [
         {
           "output_type": "display_data",
           "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 5;\n                var nbb_unformatted_code = \"import pandas as pd\\nimport os\\nfrom pyprojroot import here\\nimport numpy as np\\nfrom skimpy import clean_columns\\npath_data = here(\\\"./data\\\")\\nos.chdir(path_data)\\ndata_iu = pd.read_csv(\\\"iu_data.csv\\\")\\ndata_iu=  clean_columns(data_iu)\";\n                var nbb_formatted_code = \"import pandas as pd\\nimport os\\nfrom pyprojroot import here\\nimport numpy as np\\nfrom skimpy import clean_columns\\n\\npath_data = here(\\\"./data\\\")\\nos.chdir(path_data)\\ndata_iu = pd.read_csv(\\\"iu_data.csv\\\")\\ndata_iu = clean_columns(data_iu)\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
+            "text/plain": "\u001b[1;36m7\u001b[0m column names have been cleaned\n",
+            "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\"><span style=\"color: #008080; text-decoration-color: #008080; font-weight: bold\">7</span> column names have been cleaned\n</pre>\n"
           },
           "metadata": {}
         }
       ],
+      "execution_count": 4,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681157057764
+        }
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Step: Drop date and variables"
+      ],
+      "metadata": {
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "data_iu_encoded = pd.concat(\n",
+        "    [\n",
+        "        data_iu_update.drop(columns=\"ncaa_tournament\"),\n",
+        "        pd.DataFrame(data_ncaa_tournament),\n",
+        "    ],\n",
+        "    axis=1,\n",
+        ").rename(columns={0: \"tournament_make\"})"
+      ],
+      "outputs": [],
       "execution_count": 5,
       "metadata": {
         "jupyter": {
@@ -80,148 +186,14 @@
           }
         },
         "gather": {
-          "logged": 1681053249710
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "import pandas as pd\n",
-        "\n",
-        "# create a DataFrame with a column containing NaNs\n",
-        "df = pd.DataFrame({\"A\": [1, 2, np.nan, 3]})\n",
-        "\n",
-        "# one-hot encode the 'A' column and keep NaNs as NaNs\n",
-        "encoded_df = pd.get_dummies(df[\"A\"], dummy_na=True)\n",
-        "\n",
-        "# concatenate the encoded DataFrame with the original DataFrame\n",
-        "df = pd.concat([df, encoded_df], axis=1)\n",
-        "\n",
-        "print(df)"
-      ],
-      "outputs": [
-        {
-          "output_type": "stream",
-          "name": "stdout",
-          "text": "     A  1.0  2.0  3.0  NaN\n0  1.0    1    0    0    0\n1  2.0    0    1    0    0\n2  NaN    0    0    0    1\n3  3.0    0    0    1    0\n"
-        },
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 19;\n                var nbb_unformatted_code = \"import pandas as pd\\n\\n# create a DataFrame with a column containing NaNs\\ndf = pd.DataFrame({'A': [1, 2, np.nan, 3]})\\n\\n# one-hot encode the 'A' column and keep NaNs as NaNs\\nencoded_df = pd.get_dummies(df['A'], dummy_na=True)\\n\\n# concatenate the encoded DataFrame with the original DataFrame\\ndf = pd.concat([df, encoded_df], axis=1)\\n\\nprint(df)\";\n                var nbb_formatted_code = \"import pandas as pd\\n\\n# create a DataFrame with a column containing NaNs\\ndf = pd.DataFrame({\\\"A\\\": [1, 2, np.nan, 3]})\\n\\n# one-hot encode the 'A' column and keep NaNs as NaNs\\nencoded_df = pd.get_dummies(df[\\\"A\\\"], dummy_na=True)\\n\\n# concatenate the encoded DataFrame with the original DataFrame\\ndf = pd.concat([df, encoded_df], axis=1)\\n\\nprint(df)\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 19,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1681053719857
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "data_iu[\"ncaa_tournament\"].value_counts(dropna=False)\n",
-        "\n",
-        "data_ncaa_tournament = pd.get_dummies(data_iu[\"ncaa_tournament\"], dummy_na=True)\n",
-        "data_ncaa_tournament = clean_columns(data_ncaa_tournament)\n",
-        "data_ncaa_tournament = data_ncaa_tournament.rename(columns={\"nan\": \"nan_tournament\"})"
-      ],
-      "outputs": [
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "\u001b[1;36m7\u001b[0m column names have been cleaned\n",
-            "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\"><span style=\"color: #008080; text-decoration-color: #008080; font-weight: bold\">7</span> column names have been cleaned\n</pre>\n"
-          },
-          "metadata": {}
-        },
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 20;\n                var nbb_unformatted_code = \"data_iu['ncaa_tournament'].value_counts(dropna = False)\\n\\ndata_ncaa_tournament = pd.get_dummies(data_iu['ncaa_tournament'], dummy_na=True)\\ndata_ncaa_tournament = clean_columns(data_ncaa_tournament)\\ndata_ncaa_tournament = data_ncaa_tournament.rename(columns={'nan':'nan_tournament'})\";\n                var nbb_formatted_code = \"data_iu[\\\"ncaa_tournament\\\"].value_counts(dropna=False)\\n\\ndata_ncaa_tournament = pd.get_dummies(data_iu[\\\"ncaa_tournament\\\"], dummy_na=True)\\ndata_ncaa_tournament = clean_columns(data_ncaa_tournament)\\ndata_ncaa_tournament = data_ncaa_tournament.rename(columns={\\\"nan\\\": \\\"nan_tournament\\\"})\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 20,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1681053722163
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "data_iu_encoded = pd.concat(\n",
-        "    [data_iu.drop(columns=\"ncaa_tournament\"), data_ncaa_tournament], axis=1\n",
-        ")\n",
-        "\n",
-        "data_iu_encoded"
-      ],
-      "outputs": [
-        {
-          "output_type": "execute_result",
-          "execution_count": 21,
-          "data": {
-            "text/plain": "      season   w  ... won_ncaa_tournament_national_final  nan_tournament\n0    2022-23  23  ...                                  0               0\n1    2021-22  21  ...                                  0               0\n2    2020-21  12  ...                                  0               1\n3    2019-20  20  ...                                  0               1\n4    2018-19  19  ...                                  0               1\n..       ...  ..  ...                                ...             ...\n118  1904-05   5  ...                                  0               1\n119  1903-04   5  ...                                  0               1\n120  1902-03   8  ...                                  0               1\n121  1901-02   4  ...                                  0               1\n122  1900-01   1  ...                                  0               1\n\n[123 rows x 24 columns]",
-            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>season</th>\n      <th>w</th>\n      <th>l</th>\n      <th>w_l_%</th>\n      <th>w_c</th>\n      <th>l_c</th>\n      <th>w_l_%_c</th>\n      <th>srs</th>\n      <th>sos</th>\n      <th>ps_g</th>\n      <th>pa_g</th>\n      <th>ap_pre</th>\n      <th>ap_high</th>\n      <th>ap_final</th>\n      <th>seed</th>\n      <th>coach_es</th>\n      <th>lost_ncaa_tournament_first_round</th>\n      <th>lost_ncaa_tournament_national_final</th>\n      <th>lost_ncaa_tournament_national_semifinal</th>\n      <th>lost_ncaa_tournament_regional_final</th>\n      <th>lost_ncaa_tournament_regional_semifinal</th>\n      <th>lost_ncaa_tournament_second_round</th>\n      <th>won_ncaa_tournament_national_final</th>\n      <th>nan_tournament</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>2022-23</td>\n      <td>23</td>\n      <td>12</td>\n      <td>0.657</td>\n      <td>12</td>\n      <td>8</td>\n      <td>0.600</td>\n      <td>14.96</td>\n      <td>8.90</td>\n      <td>74.7</td>\n      <td>68.7</td>\n      <td>13.0</td>\n      <td>10.0</td>\n      <td>21.0</td>\n      <td>4.0</td>\n      <td>Mike Woodson (23-12)</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2021-22</td>\n      <td>21</td>\n      <td>14</td>\n      <td>0.600</td>\n      <td>9</td>\n      <td>11</td>\n      <td>0.450</td>\n      <td>12.71</td>\n      <td>8.08</td>\n      <td>70.8</td>\n      <td>66.2</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>12.0</td>\n      <td>Mike Woodson (21-14)</td>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>2020-21</td>\n      <td>12</td>\n      <td>15</td>\n      <td>0.444</td>\n      <td>7</td>\n      <td>12</td>\n      <td>0.368</td>\n      <td>12.79</td>\n      <td>12.45</td>\n      <td>69.7</td>\n      <td>69.4</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>Archie Miller (12-15)</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>2019-20</td>\n      <td>20</td>\n      <td>12</td>\n      <td>0.625</td>\n      <td>9</td>\n      <td>11</td>\n      <td>0.450</td>\n      <td>15.07</td>\n      <td>10.35</td>\n      <td>71.4</td>\n      <td>66.7</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>Archie Miller (20-12)</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>2018-19</td>\n      <td>19</td>\n      <td>16</td>\n      <td>0.543</td>\n      <td>8</td>\n      <td>12</td>\n      <td>0.400</td>\n      <td>13.82</td>\n      <td>10.10</td>\n      <td>71.5</td>\n      <td>67.8</td>\n      <td>NaN</td>\n      <td>21.0</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>Archie Miller (19-16)</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>...</th>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n    </tr>\n    <tr>\n      <th>118</th>\n      <td>1904-05</td>\n      <td>5</td>\n      <td>12</td>\n      <td>0.294</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>Zora Clevenger (5-12)</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>119</th>\n      <td>1903-04</td>\n      <td>5</td>\n      <td>4</td>\n      <td>0.556</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>Willis Coval (5-4)</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>120</th>\n      <td>1902-03</td>\n      <td>8</td>\n      <td>4</td>\n      <td>0.667</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>Willis Coval (8-4)</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>121</th>\n      <td>1901-02</td>\n      <td>4</td>\n      <td>4</td>\n      <td>0.500</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>Phelps Darby (4-4)</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n    <tr>\n      <th>122</th>\n      <td>1900-01</td>\n      <td>1</td>\n      <td>4</td>\n      <td>0.200</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>James Horne (1-4</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n    </tr>\n  </tbody>\n</table>\n<p>123 rows × 24 columns</p>\n</div>"
-          },
-          "metadata": {}
-        },
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 21;\n                var nbb_unformatted_code = \"data_iu_encoded = pd.concat([data_iu.drop(columns = 'ncaa_tournament'), data_ncaa_tournament], axis =    1)\\n\\ndata_iu_encoded\";\n                var nbb_formatted_code = \"data_iu_encoded = pd.concat(\\n    [data_iu.drop(columns=\\\"ncaa_tournament\\\"), data_ncaa_tournament], axis=1\\n)\\n\\ndata_iu_encoded\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 21,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1681053724971
+          "logged": 1681157059355
         }
       }
     },
     {
       "cell_type": "markdown",
       "source": [
-        "Step: Limit data to 1939 and later and include a year var"
+        "Step: Remove *"
       ],
       "metadata": {
         "nteract": {
@@ -234,302 +206,20 @@
     {
       "cell_type": "code",
       "source": [
-        "data_iu_encoded[\"coach_es\"] = data_iu_encoded[\"coach_es\"].str.replace(r\"\\s*\\(.*\\)\", \"\")"
-      ],
-      "outputs": [
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 31;\n                var nbb_unformatted_code = \"data_iu_encoded[\\\"coach_es\\\"] = data_iu_encoded[\\\"coach_es\\\"].str.replace(r\\\"\\\\s*\\\\(.*\\\\)\\\", \\\"\\\")\";\n                var nbb_formatted_code = \"data_iu_encoded[\\\"coach_es\\\"] = data_iu_encoded[\\\"coach_es\\\"].str.replace(r\\\"\\\\s*\\\\(.*\\\\)\\\", \\\"\\\")\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 31,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1681054276206
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "import pandas as pd\n",
-        "import numpy as np\n",
-        "\n",
-        "\n",
-        "def filter_and_encode_categorical_data(data, column_name, percentile_threshold):\n",
-        "    \"\"\"\n",
-        "    This function takes a pandas DataFrame, a column name, and a percentile threshold as inputs.\n",
-        "    It then encodes the categorical data in the specified column using pd.get_dummies, keeps only\n",
-        "    the response options with a frequency above the specified percentile threshold, and returns\n",
-        "    NaNs as NaNs.\n",
-        "\n",
-        "    :param data: pandas.DataFrame, the input data.\n",
-        "    :param column_name: str, the name of the column containing the categorical data.\n",
-        "    :param percentile_threshold: float, the percentile threshold to filter response options.\n",
-        "    :return: pandas.DataFrame, the transformed data with the specified column encoded.\n",
-        "    \"\"\"\n",
-        "\n",
-        "    # Create a boolean mask that flags NaNs in the column\n",
-        "    nan_mask = data[column_name].isna()\n",
-        "\n",
-        "    # Calculate the frequency of each category in the column\n",
-        "    category_counts = data[column_name].value_counts()\n",
-        "\n",
-        "    # Calculate the threshold count based on the percentile\n",
-        "    threshold_count = np.percentile(category_counts, percentile_threshold)\n",
-        "\n",
-        "    # Filter the categories with a count above the threshold\n",
-        "    filtered_categories = category_counts[category_counts > threshold_count].index\n",
-        "\n",
-        "    # Create a new column with filtered categories, and replace less frequent categories with NaN\n",
-        "    filtered_data = data[column_name].apply(\n",
-        "        lambda x: x if x in filtered_categories else np.nan\n",
-        "    )\n",
-        "\n",
-        "    # Encode the categorical data in the column with pd.get_dummies\n",
-        "    encoded_data = pd.get_dummies(filtered_data, dummy_na=False)\n",
-        "\n",
-        "    # Reintroduce NaNs in the encoded data using the boolean mask\n",
-        "    for col in encoded_data.columns:\n",
-        "        encoded_data.loc[nan_mask, col] = np.nan\n",
-        "\n",
-        "    # Combine the original data with the encoded columns, dropping the original column\n",
-        "    transformed_data = data.drop(column_name, axis=1).join(encoded_data)\n",
-        "\n",
-        "    return transformed_data"
-      ],
-      "outputs": [
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 52;\n                var nbb_unformatted_code = \"import pandas as pd\\nimport numpy as np\\n\\ndef filter_and_encode_categorical_data(data, column_name, percentile_threshold):\\n    \\\"\\\"\\\"\\n    This function takes a pandas DataFrame, a column name, and a percentile threshold as inputs.\\n    It then encodes the categorical data in the specified column using pd.get_dummies, keeps only\\n    the response options with a frequency above the specified percentile threshold, and returns\\n    NaNs as NaNs.\\n    \\n    :param data: pandas.DataFrame, the input data.\\n    :param column_name: str, the name of the column containing the categorical data.\\n    :param percentile_threshold: float, the percentile threshold to filter response options.\\n    :return: pandas.DataFrame, the transformed data with the specified column encoded.\\n    \\\"\\\"\\\"\\n\\n    # Create a boolean mask that flags NaNs in the column\\n    nan_mask = data[column_name].isna()\\n\\n    # Calculate the frequency of each category in the column\\n    category_counts = data[column_name].value_counts()\\n\\n    # Calculate the threshold count based on the percentile\\n    threshold_count = np.percentile(category_counts, percentile_threshold)\\n\\n    # Filter the categories with a count above the threshold\\n    filtered_categories = category_counts[category_counts > threshold_count].index\\n\\n    # Create a new column with filtered categories, and replace less frequent categories with NaN\\n    filtered_data = data[column_name].apply(lambda x: x if x in filtered_categories else np.nan)\\n\\n    # Encode the categorical data in the column with pd.get_dummies\\n    encoded_data = pd.get_dummies(filtered_data, dummy_na=False)\\n\\n    # Reintroduce NaNs in the encoded data using the boolean mask\\n    for col in encoded_data.columns:\\n        encoded_data.loc[nan_mask, col] = np.nan\\n\\n    # Combine the original data with the encoded columns, dropping the original column\\n    transformed_data = data.drop(column_name, axis=1).join(encoded_data)\\n\\n    return transformed_data\";\n                var nbb_formatted_code = \"import pandas as pd\\nimport numpy as np\\n\\n\\ndef filter_and_encode_categorical_data(data, column_name, percentile_threshold):\\n    \\\"\\\"\\\"\\n    This function takes a pandas DataFrame, a column name, and a percentile threshold as inputs.\\n    It then encodes the categorical data in the specified column using pd.get_dummies, keeps only\\n    the response options with a frequency above the specified percentile threshold, and returns\\n    NaNs as NaNs.\\n\\n    :param data: pandas.DataFrame, the input data.\\n    :param column_name: str, the name of the column containing the categorical data.\\n    :param percentile_threshold: float, the percentile threshold to filter response options.\\n    :return: pandas.DataFrame, the transformed data with the specified column encoded.\\n    \\\"\\\"\\\"\\n\\n    # Create a boolean mask that flags NaNs in the column\\n    nan_mask = data[column_name].isna()\\n\\n    # Calculate the frequency of each category in the column\\n    category_counts = data[column_name].value_counts()\\n\\n    # Calculate the threshold count based on the percentile\\n    threshold_count = np.percentile(category_counts, percentile_threshold)\\n\\n    # Filter the categories with a count above the threshold\\n    filtered_categories = category_counts[category_counts > threshold_count].index\\n\\n    # Create a new column with filtered categories, and replace less frequent categories with NaN\\n    filtered_data = data[column_name].apply(\\n        lambda x: x if x in filtered_categories else np.nan\\n    )\\n\\n    # Encode the categorical data in the column with pd.get_dummies\\n    encoded_data = pd.get_dummies(filtered_data, dummy_na=False)\\n\\n    # Reintroduce NaNs in the encoded data using the boolean mask\\n    for col in encoded_data.columns:\\n        encoded_data.loc[nan_mask, col] = np.nan\\n\\n    # Combine the original data with the encoded columns, dropping the original column\\n    transformed_data = data.drop(column_name, axis=1).join(encoded_data)\\n\\n    return transformed_data\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 52,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1681055023046
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "def fun_hot_encode_limit(data, column_name, threshold=0.01):\n",
-        "    encoded_data = pd.get_dummies(data_iu_encoded[\"coach_es\"], dummy_na=True)\n",
-        "    threshold = 0.05\n",
-        "    data_keep = (\n",
-        "        pd.DataFrame(\n",
-        "            data_iu_encoded[\"coach_es\"].value_counts(normalize=True, dropna=False)\n",
-        "        )\n",
-        "        .reset_index()\n",
-        "        .query(\"coach_es >= @threshold\")\n",
-        "    )\n",
-        "    encoded_data = clean_columns(encoded_data.filter(items=data_keep[\"index\"]))\n",
-        "    return encoded_data"
-      ],
-      "outputs": [
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 65;\n                var nbb_unformatted_code = \"def fun_hot_encode_limit(data, column_name, threshold=0.01):\\n    encoded_data = pd.get_dummies(data_iu_encoded[\\\"coach_es\\\"], dummy_na=True)\\n    threshold = 0.05\\n    data_keep = (\\n        pd.DataFrame(\\n            data_iu_encoded[\\\"coach_es\\\"].value_counts(normalize=True, dropna=False)\\n        )\\n        .reset_index()\\n        .query(\\\"coach_es >= @threshold\\\")\\n    )\\n    encoded_data = clean_columns(encoded_data.filter(items=data_keep[\\\"index\\\"]))\\n    return encoded_data\";\n                var nbb_formatted_code = \"def fun_hot_encode_limit(data, column_name, threshold=0.01):\\n    encoded_data = pd.get_dummies(data_iu_encoded[\\\"coach_es\\\"], dummy_na=True)\\n    threshold = 0.05\\n    data_keep = (\\n        pd.DataFrame(\\n            data_iu_encoded[\\\"coach_es\\\"].value_counts(normalize=True, dropna=False)\\n        )\\n        .reset_index()\\n        .query(\\\"coach_es >= @threshold\\\")\\n    )\\n    encoded_data = clean_columns(encoded_data.filter(items=data_keep[\\\"index\\\"]))\\n    return encoded_data\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 65,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1681055509491
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "fun_hot_encode_limit(data=data_iu_encoded, column_name=\"coach_es\", threshold=0.01)"
-      ],
-      "outputs": [
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "\u001b[1;36m4\u001b[0m column names have been cleaned\n",
-            "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\"><span style=\"color: #008080; text-decoration-color: #008080; font-weight: bold\">4</span> column names have been cleaned\n</pre>\n"
-          },
-          "metadata": {}
-        },
-        {
-          "output_type": "execute_result",
-          "execution_count": 66,
-          "data": {
-            "text/plain": "     bob_knight  branch_mc_cracken  everett_dean  tom_crean\n0             0                  0             0          0\n1             0                  0             0          0\n2             0                  0             0          0\n3             0                  0             0          0\n4             0                  0             0          0\n..          ...                ...           ...        ...\n118           0                  0             0          0\n119           0                  0             0          0\n120           0                  0             0          0\n121           0                  0             0          0\n122           0                  0             0          0\n\n[123 rows x 4 columns]",
-            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>bob_knight</th>\n      <th>branch_mc_cracken</th>\n      <th>everett_dean</th>\n      <th>tom_crean</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>...</th>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n    </tr>\n    <tr>\n      <th>118</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>119</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>120</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>121</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>122</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n  </tbody>\n</table>\n<p>123 rows × 4 columns</p>\n</div>"
-          },
-          "metadata": {}
-        },
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 66;\n                var nbb_unformatted_code = \"fun_hot_encode_limit(data=data_iu_encoded, column_name=\\\"coach_es\\\", threshold=0.01)\";\n                var nbb_formatted_code = \"fun_hot_encode_limit(data=data_iu_encoded, column_name=\\\"coach_es\\\", threshold=0.01)\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 66,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1681055511270
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [],
-      "outputs": [
-        {
-          "output_type": "execute_result",
-          "execution_count": 57,
-          "data": {
-            "text/plain": "              index  coach_es\n0        Bob Knight  0.235772\n1  Branch McCracken  0.195122\n2      Everett Dean  0.113821\n3         Tom Crean  0.073171",
-            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>index</th>\n      <th>coach_es</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>Bob Knight</td>\n      <td>0.235772</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>Branch McCracken</td>\n      <td>0.195122</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>Everett Dean</td>\n      <td>0.113821</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>Tom Crean</td>\n      <td>0.073171</td>\n    </tr>\n  </tbody>\n</table>\n</div>"
-          },
-          "metadata": {}
-        },
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 57;\n                var nbb_unformatted_code = \"threshold = .05\\ndata_keep = pd.DataFrame(\\n    data_iu_encoded[\\\"coach_es\\\"].value_counts(normalize=True, dropna=False)\\n).reset_index().query(\\\"coach_es >= @threshold\\\")\\ndata_keep\";\n                var nbb_formatted_code = \"threshold = 0.05\\ndata_keep = (\\n    pd.DataFrame(data_iu_encoded[\\\"coach_es\\\"].value_counts(normalize=True, dropna=False))\\n    .reset_index()\\n    .query(\\\"coach_es >= @threshold\\\")\\n)\\ndata_keep\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 57,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1681055272566
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [],
-      "outputs": [
-        {
-          "output_type": "execute_result",
-          "execution_count": 62,
-          "data": {
-            "text/plain": "     Bob Knight  Branch McCracken  Everett Dean  Tom Crean\n0             0                 0             0          0\n1             0                 0             0          0\n2             0                 0             0          0\n3             0                 0             0          0\n4             0                 0             0          0\n..          ...               ...           ...        ...\n118           0                 0             0          0\n119           0                 0             0          0\n120           0                 0             0          0\n121           0                 0             0          0\n122           0                 0             0          0\n\n[123 rows x 4 columns]",
-            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>Bob Knight</th>\n      <th>Branch McCracken</th>\n      <th>Everett Dean</th>\n      <th>Tom Crean</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>...</th>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n    </tr>\n    <tr>\n      <th>118</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>119</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>120</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>121</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n    <tr>\n      <th>122</th>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n    </tr>\n  </tbody>\n</table>\n<p>123 rows × 4 columns</p>\n</div>"
-          },
-          "metadata": {}
-        },
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 62;\n                var nbb_unformatted_code = \"encoded_data.filter(items=data_keep[\\\"index\\\"])\";\n                var nbb_formatted_code = \"encoded_data.filter(items=data_keep[\\\"index\\\"])\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
-          },
-          "metadata": {}
-        }
-      ],
-      "execution_count": 62,
-      "metadata": {
-        "jupyter": {
-          "source_hidden": false,
-          "outputs_hidden": false
-        },
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
-        },
-        "gather": {
-          "logged": 1681055365697
-        }
-      }
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "filter_and_encode_categorical_data(\n",
-        "    data=data_iu_encoded, column_name=\"coach_es\", percentile_threshold=0.5\n",
-        ")"
+        "columns_to_remove_asterisk = data_iu_encoded.columns\n",
+        "columns_to_remove_asterisk"
       ],
       "outputs": [
         {
           "output_type": "execute_result",
-          "execution_count": 54,
+          "execution_count": 7,
           "data": {
-            "text/plain": "      season   w   l  ...  Tom Crean Willis Coval Zora Clevenger\n0    2022-23  23  12  ...        0.0          0.0            0.0\n1    2021-22  21  14  ...        0.0          0.0            0.0\n2    2020-21  12  15  ...        0.0          0.0            0.0\n3    2019-20  20  12  ...        0.0          0.0            0.0\n4    2018-19  19  16  ...        0.0          0.0            0.0\n..       ...  ..  ..  ...        ...          ...            ...\n118  1904-05   5  12  ...        0.0          0.0            1.0\n119  1903-04   5   4  ...        0.0          1.0            0.0\n120  1902-03   8   4  ...        0.0          1.0            0.0\n121  1901-02   4   4  ...        0.0          0.0            0.0\n122  1900-01   1   4  ...        0.0          0.0            0.0\n\n[123 rows x 38 columns]",
-            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>season</th>\n      <th>w</th>\n      <th>l</th>\n      <th>w_l_%</th>\n      <th>w_c</th>\n      <th>l_c</th>\n      <th>w_l_%_c</th>\n      <th>srs</th>\n      <th>sos</th>\n      <th>ps_g</th>\n      <th>pa_g</th>\n      <th>ap_pre</th>\n      <th>ap_high</th>\n      <th>ap_final</th>\n      <th>seed</th>\n      <th>lost_ncaa_tournament_first_round</th>\n      <th>lost_ncaa_tournament_national_final</th>\n      <th>lost_ncaa_tournament_national_semifinal</th>\n      <th>lost_ncaa_tournament_regional_final</th>\n      <th>lost_ncaa_tournament_regional_semifinal</th>\n      <th>lost_ncaa_tournament_second_round</th>\n      <th>won_ncaa_tournament_national_final</th>\n      <th>nan_tournament</th>\n      <th>Archie Miller</th>\n      <th>Arthur Berndt</th>\n      <th>Bob Knight</th>\n      <th>Branch McCracken</th>\n      <th>Dana Evans</th>\n      <th>Everett Dean</th>\n      <th>George Lewis</th>\n      <th>Harry Good</th>\n      <th>Leslie Mann</th>\n      <th>Lou Watson</th>\n      <th>Mike Davis</th>\n      <th>Mike Woodson</th>\n      <th>Tom Crean</th>\n      <th>Willis Coval</th>\n      <th>Zora Clevenger</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>2022-23</td>\n      <td>23</td>\n      <td>12</td>\n      <td>0.657</td>\n      <td>12</td>\n      <td>8</td>\n      <td>0.600</td>\n      <td>14.96</td>\n      <td>8.90</td>\n      <td>74.7</td>\n      <td>68.7</td>\n      <td>13.0</td>\n      <td>10.0</td>\n      <td>21.0</td>\n      <td>4.0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>1.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2021-22</td>\n      <td>21</td>\n      <td>14</td>\n      <td>0.600</td>\n      <td>9</td>\n      <td>11</td>\n      <td>0.450</td>\n      <td>12.71</td>\n      <td>8.08</td>\n      <td>70.8</td>\n      <td>66.2</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>12.0</td>\n      <td>1</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>1.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>2020-21</td>\n      <td>12</td>\n      <td>15</td>\n      <td>0.444</td>\n      <td>7</td>\n      <td>12</td>\n      <td>0.368</td>\n      <td>12.79</td>\n      <td>12.45</td>\n      <td>69.7</td>\n      <td>69.4</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>1.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>2019-20</td>\n      <td>20</td>\n      <td>12</td>\n      <td>0.625</td>\n      <td>9</td>\n      <td>11</td>\n      <td>0.450</td>\n      <td>15.07</td>\n      <td>10.35</td>\n      <td>71.4</td>\n      <td>66.7</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>1.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>2018-19</td>\n      <td>19</td>\n      <td>16</td>\n      <td>0.543</td>\n      <td>8</td>\n      <td>12</td>\n      <td>0.400</td>\n      <td>13.82</td>\n      <td>10.10</td>\n      <td>71.5</td>\n      <td>67.8</td>\n      <td>NaN</td>\n      <td>21.0</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>1.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n    </tr>\n    <tr>\n      <th>...</th>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n      <td>...</td>\n    </tr>\n    <tr>\n      <th>118</th>\n      <td>1904-05</td>\n      <td>5</td>\n      <td>12</td>\n      <td>0.294</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>1.0</td>\n    </tr>\n    <tr>\n      <th>119</th>\n      <td>1903-04</td>\n      <td>5</td>\n      <td>4</td>\n      <td>0.556</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>1.0</td>\n      <td>0.0</td>\n    </tr>\n    <tr>\n      <th>120</th>\n      <td>1902-03</td>\n      <td>8</td>\n      <td>4</td>\n      <td>0.667</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>1.0</td>\n      <td>0.0</td>\n    </tr>\n    <tr>\n      <th>121</th>\n      <td>1901-02</td>\n      <td>4</td>\n      <td>4</td>\n      <td>0.500</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n    </tr>\n    <tr>\n      <th>122</th>\n      <td>1900-01</td>\n      <td>1</td>\n      <td>4</td>\n      <td>0.200</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>NaN</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>0</td>\n      <td>1</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n      <td>0.0</td>\n    </tr>\n  </tbody>\n</table>\n<p>123 rows × 38 columns</p>\n</div>"
-          },
-          "metadata": {}
-        },
-        {
-          "output_type": "display_data",
-          "data": {
-            "text/plain": "<IPython.core.display.Javascript object>",
-            "application/javascript": "\n            setTimeout(function() {\n                var nbb_cell_id = 54;\n                var nbb_unformatted_code = \"filter_and_encode_categorical_data(\\n    data=data_iu_encoded, column_name=\\\"coach_es\\\", percentile_threshold=0.5\\n)\";\n                var nbb_formatted_code = \"filter_and_encode_categorical_data(\\n    data=data_iu_encoded, column_name=\\\"coach_es\\\", percentile_threshold=0.5\\n)\";\n                var nbb_cells = Jupyter.notebook.get_cells();\n                for (var i = 0; i < nbb_cells.length; ++i) {\n                    if (nbb_cells[i].input_prompt_number == nbb_cell_id) {\n                        if (nbb_cells[i].get_text() == nbb_unformatted_code) {\n                             nbb_cells[i].set_text(nbb_formatted_code);\n                        }\n                        break;\n                    }\n                }\n            }, 500);\n            "
+            "text/plain": "Index(['season', 'w', 'l', 'w_l_%', 'w_c', 'l_c', 'w_l_%_c', 'srs', 'sos',\n       'ps_g', 'pa_g', 'ap_pre', 'ap_high', 'ap_final', 'seed',\n       'tournament_make'],\n      dtype='object')"
           },
           "metadata": {}
         }
       ],
-      "execution_count": 54,
+      "execution_count": 7,
       "metadata": {
         "jupyter": {
           "source_hidden": false,
@@ -541,28 +231,18 @@
           }
         },
         "gather": {
-          "logged": 1681055036130
-        }
-      }
-    },
-    {
-      "cell_type": "markdown",
-      "source": [
-        "Step: Make season a year"
-      ],
-      "metadata": {
-        "nteract": {
-          "transient": {
-            "deleting": false
-          }
+          "logged": 1681157090881
         }
       }
     },
     {
       "cell_type": "code",
-      "source": [],
+      "source": [
+        "for col in columns_to_remove_asterisk:\n",
+        "    data_iu_encoded[col] = data_iu_encoded[col].replace(\"\\*\", \"\", regex=True)"
+      ],
       "outputs": [],
-      "execution_count": null,
+      "execution_count": 8,
       "metadata": {
         "jupyter": {
           "source_hidden": false,
@@ -572,6 +252,68 @@
           "transient": {
             "deleting": false
           }
+        },
+        "gather": {
+          "logged": 1681157096370
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "data_iu_encoded[[\"w\", \"l\", \"w_c\", \"l_c\"]] = data_iu_encoded[\n",
+        "    [\"w\", \"l\", \"w_c\", \"l_c\"]\n",
+        "].astype(int)"
+      ],
+      "outputs": [],
+      "execution_count": 10,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681157150492
+        }
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Step: Save data"
+      ],
+      "metadata": {
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "data_iu_encoded.to_parquet(\"data_iu_analysis.parquet\")"
+      ],
+      "outputs": [],
+      "execution_count": 11,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681157152539
         }
       }
     }
