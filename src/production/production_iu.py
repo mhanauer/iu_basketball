@@ -2,18 +2,14 @@ import pandas as pd
 import os
 from pyprojroot import here
 import numpy as np
-from skimpy import clean_columns
 import joblib
+import streamlit as st
 
 path_outputs = here("./outputs")
 os.chdir(path_outputs)
 
 model_iu_bball = joblib.load("model_iu_bball.jlib")
 
-import streamlit as st
-import numpy as np
-import pandas as pd
-import joblib
 
 st.title('Prediction app for IU making the NCAA tournament')
 
