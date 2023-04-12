@@ -30,4 +30,6 @@ input_data = np.array([w, l, w_c, l_c, sos, ps_g, pa_g, ap_pre, ap_final]).resha
 
 if st.button('Predict'):
     prediction = model_iu_bball.predict(input_data)
-    st.write(f'The prediction is: {prediction[0]}')
+    rounded_prediction = round(prediction[0], 2)
+    st.write(f'The prediction is: {rounded_prediction}')
+
