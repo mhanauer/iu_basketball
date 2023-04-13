@@ -30,3 +30,4 @@ if st.button('Predict'):
     percentage_prediction = round(prediction[0] * 100, 0)
     st.write(f'The prediction is: {percentage_prediction}%')
 
+
