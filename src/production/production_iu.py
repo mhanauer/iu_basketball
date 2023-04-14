@@ -1,5 +1,4 @@
 import pandas as pd
-import xgboost as xgb
 import os
 from pyprojroot import here
 import numpy as np
