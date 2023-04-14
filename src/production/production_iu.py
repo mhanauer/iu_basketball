@@ -9,7 +9,7 @@ import streamlit as st
 path_outputs = here("./outputs")
 os.chdir(path_outputs)
 
-model_iu_bball_lgb = joblib.load("model_iu_bball_lgb.jlib")
+model_iu_bball = joblib.load("model_iu_bball.jlib")
 
 
 st.title('Prediction app for IU making the NCAA tournament')
@@ -26,7 +26,7 @@ ap_final = st.number_input('Enter AP high ranking:', min_value=0.0, step=0.01, v
 input_data = np.array([w, l, w_c, l_c, sos, ps_g, pa_g, ap_pre, ap_final]).reshape(1, -1)
 
 if st.button('Predict'):
-    prediction = model_iu_bball_lgb.predict(input_data)
+    prediction = model_iu_bball.predict(input_data)
     percentage_prediction = round(prediction[0] * 100, 0)
     st.write(f'The prediction is: {percentage_prediction}%')
 

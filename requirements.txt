@@ -1,5 +1,6 @@
 pandas==1.5.3
 lightgbm==3.2.1
+xgboost = 1.7.3
 numpy==1.24.2
 pyprojroot==0.3.0
 streamlit==1.20.0
