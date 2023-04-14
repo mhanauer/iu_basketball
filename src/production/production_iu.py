@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import lightgbm as lgb
 from pyprojroot import here
 import numpy as np
 import joblib
