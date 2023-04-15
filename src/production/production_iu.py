@@ -27,7 +27,7 @@ input_data = np.array([w, l, w_c, l_c, sos, ps_g, pa_g, ap_pre, ap_final]).resha
 
 if st.button('Predict'):
     prediction = model_iu_bball.predict_proba(input_data)
-    percentage_prediction = np.round(prediction[0] * 100, 0)
+    percentage_prediction = np.round(prediction[0] * 100, 0)[1]
     st.write(f'The probability IU makes the tournament is: {percentage_prediction}%')
 
 
