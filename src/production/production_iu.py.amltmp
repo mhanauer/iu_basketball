@@ -26,7 +26,7 @@ ap_final = st.number_input('Enter AP high ranking:', min_value=0, step=1, value 
 input_data = np.array([w, l, w_c, l_c, sos, ps_g, pa_g, ap_pre, ap_final]).reshape(1, -1)
 
 if st.button('Predict'):
-    prediction = model_iu_bball.predict(input_data)
+    prediction = model_iu_bball.predict_proba(input_data)
     percentage_prediction = round(prediction[0] * 100, 0)
     st.write(f'The probability IU makes the tournament is: {percentage_prediction}%')
 
