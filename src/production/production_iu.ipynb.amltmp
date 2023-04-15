@@ -26,22 +26,16 @@
         "path_outputs = here(\"./outputs\")\n",
         "os.chdir(path_outputs)\n",
         "\n",
-        "model_iu_bball_lgb = joblib.load(\"model_iu_bball_lgb.jlib\")\n",
+        "model_iu_bball = joblib.load(\"model_iu_bball.jlib\")\n",
         "path_data = here(\"./data\")\n",
         "os.chdir(path_data)\n",
         "data_iu_analysis = pd.read_parquet(\"data_iu_analysis.parquet\")"
       ],
-      "outputs": [
-        {
-          "output_type": "stream",
-          "name": "stderr",
-          "text": "/anaconda/envs/azureml_py38/lib/python3.8/site-packages/dask/dataframe/backends.py:181: FutureWarning: pandas.Int64Index is deprecated and will be removed from pandas in a future version. Use pandas.Index with the appropriate dtype instead.\n  _numeric_index_types = (pd.Int64Index, pd.Float64Index, pd.UInt64Index)\n/anaconda/envs/azureml_py38/lib/python3.8/site-packages/dask/dataframe/backends.py:181: FutureWarning: pandas.Float64Index is deprecated and will be removed from pandas in a future version. Use pandas.Index with the appropriate dtype instead.\n  _numeric_index_types = (pd.Int64Index, pd.Float64Index, pd.UInt64Index)\n/anaconda/envs/azureml_py38/lib/python3.8/site-packages/dask/dataframe/backends.py:181: FutureWarning: pandas.UInt64Index is deprecated and will be removed from pandas in a future version. Use pandas.Index with the appropriate dtype instead.\n  _numeric_index_types = (pd.Int64Index, pd.Float64Index, pd.UInt64Index)\n"
-        }
-      ],
-      "execution_count": 2,
+      "outputs": [],
+      "execution_count": 3,
       "metadata": {
         "gather": {
-          "logged": 1681486232318
+          "logged": 1681565011364
         },
         "jupyter": {
           "outputs_hidden": false,
@@ -78,14 +72,14 @@
     {
       "cell_type": "code",
       "source": [
-        "model_iu_bball_lgb"
+        "model_iu_bball"
       ],
       "outputs": [
         {
           "output_type": "execute_result",
           "execution_count": 4,
           "data": {
-            "text/plain": "LGBMRegressor(bagging_fraction=0.65, bagging_freq=9, boosting_type='dart',\n              colsample_bytree=0.6, extra_trees=True, feature_fraction=0.5,\n              lambda_l1=0.0011522929173528225, lambda_l2=0.038427594585116506,\n              learning_rate=0.11641217126390932, max_bin=162, max_depth=8,\n              min_child_weight=14, min_gain_to_split=0.0007630314304458636,\n              n_estimators=148, num_leaves=131, subsample=0.9500000000000001)"
+            "text/plain": "LGBMClassifier(colsample_bytree=0.8, learning_rate=0.0622337477029989,\n               max_depth=5, n_estimators=181, subsample=0.6)"
           },
           "metadata": {}
         }
@@ -93,23 +87,85 @@
       "execution_count": 4,
       "metadata": {
         "gather": {
-          "logged": 1681486240194
+          "logged": 1681565016065
         }
       }
     },
     {
       "cell_type": "code",
       "source": [
-        "prediction = model_iu_bball_lgb.predict(\n",
-        "    data_iu_analysis.drop(columns=\"tournament_make\")\n",
+        "prediction = model_iu_bball.predict_proba(\n",
+        "    data_iu_analysis.drop(columns=\"tournament_make\").head(1)\n",
         ")\n",
-        "percentage_prediction = round(prediction[0] * 100, 0)"
+        "percentage_prediction = np.round(prediction[0] * 100, 0)[1]"
       ],
       "outputs": [],
-      "execution_count": 5,
+      "execution_count": 20,
       "metadata": {
         "gather": {
-          "logged": 1681486243653
+          "logged": 1681565248175
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "percentage_prediction"
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 21,
+          "data": {
+            "text/plain": "94.0"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 21,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681565250498
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "percentage_prediction"
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 6,
+          "data": {
+            "text/plain": "array([ 6., 94.])"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 6,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681565038015
         }
       }
     },
